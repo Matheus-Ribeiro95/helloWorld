@@ -328,7 +328,7 @@
 
             marked.use({ renderer });
 
-            fetch("/README.md")
+            fetch("./README.md")
                 .then((response) => response.text())
                 .then((markdown) => {
                     _READMES["default"] = btoaUTF8(markdown);

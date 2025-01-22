@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>GitHub Repository Simulation - Dark Theme</title>
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+        />
+        <link rel="stylesheet" href="style.css" />
+    </head>
+    <body>
+        <div class="header">
+            <div class="button"><i class="fab fa-github"></i> GitHub</div>
+            <div class="button"><i class="fab fa-gitlab"></i> GitLab</div>
+            <div class="button"><i class="fa-solid fa-link"></i> Linktree</div>
+            Matheus-Ribeiro95
+        </div>
+        <div class="bookPage">
+            <div class="container">
+                <div class="repo-header">
+                    <div class="repo-name">
+                        <i class="fa-solid fa-terminal"></i>
+                        Matheus-Ribeiro95:&#126;&#36; ./HelloWorld
+                    </div>
+                    <div class="repo-stats">
+                        <div class="stat-item">
+                            <i class="far fa-star"></i>
+                            <span>245</span>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-code-branch"></i>
+                            <span>84</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <button class="button">
+                        <i class="fas fa-code-branch"></i>
+                        main
+                    </button>
+                    <button class="button">
+                        <i class="far fa-clone"></i>
+                        Clone
+                    </button>
+                </div>
+
+                <div class="branch-nav">
+                    <div><i class="fas fa-code"></i> Code</div>
+                    <div><i class="fas fa-exclamation-circle"></i> Issues</div>
+                    <div><i class="fas fa-code-branch"></i> Pull requests</div>
+                </div>
+
+                <div class="files-section">
+                    <div class="file-item">
+                        <i class="far fa-folder file-icon"></i>
+                        <a disabled class="file-name">src</a>
+                    </div>
+                    <div class="file-item">
+                        <i class="far fa-file-alt file-icon"></i>
+                        <a disabled class="file-name">README.md</a>
+                    </div>
+                    <div class="file-item">
+                        <i class="far fa-file-code file-icon"></i>
+                        <a disabled class="file-name">package.json</a>
+                    </div>
+                    <div class="file-item">
+                        <i class="far fa-file-code file-icon"></i>
+                        <a disabled class="file-name">.gitignore</a>
+                    </div>
+                </div>
+
+                <div class="readme">
+                    <nav class="readme-nav">
+                        <ul class="nav-list">
+                            <li
+                                class="nav-item active"
+                                data-id-readme="default"
+                            >
+                                HelloWorld <span class="close">X</span>
+                            </li>
+                        </ul>
+                    </nav>
+
+                    <div id="innerDefault"></div>
+                    <div class="hide" id="inner"></div>
+                </div>
+            </div>
+
+            <div class="spacer"></div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+        <script>
+            const _READMES = {};
+
+            document
+                .querySelector(".readme")
+                .addEventListener("click", function (event) {
+                    const target = event.target;
+
+                    if (
+                        !(
+                            (target.nodeName === "LI" &&
+                                target.classList.contains("nav-item")) ||
+                            (target.nodeName === "SPAN" &&
+                                target.classList.contains("close"))
+                        )
+                    )
+                        return;
+
+                    if (target.nodeName === "LI") {
+                        const idReadme = target.dataset.idReadme;
+                        selectTab(idReadme);
+                    } else {
+                        const idReadme = target.parentElement.dataset.idReadme;
+                        closeTab(idReadme);
+                    }
+                });
+
+            // https://gist.github.com/rfl890/e3c01d6285573f00cb333f6141c4f071
+            function btoaUTF8(data) {
+                const utf8Data = new TextEncoder().encode(data);
+                let binaryString = "";
+                for (let i = 0; i < utf8Data.length; i++) {
+                    binaryString += String.fromCharCode(utf8Data[i]);
+                }
+                return btoa(binaryString);
+            }
+            function atobUTF8(data) {
+                const decodedData = atob(data);
+                const utf8data = new Uint8Array(decodedData.length);
+                const decoder = new TextDecoder("utf-8");
+                for (let i = 0; i < decodedData.length; i++) {
+                    utf8data[i] = decodedData.charCodeAt(i);
+                }
+                return decoder.decode(utf8data);
+            }
+
+            function selectTab(idReadme) {
+                document.querySelectorAll("li.nav-item").forEach((el) => {
+                    if (el.dataset.idReadme != idReadme) {
+                        el.classList.remove("active");
+                    } else {
+                        el.classList.add("active");
+                    }
+
+                    const innerDefault = document.getElementById("innerDefault");
+                    const inner = document.getElementById("inner");
+
+                    if (idReadme === "default") {
+                        inner.classList.add("hide");
+                        innerDefault.classList.remove("hide");
+                    } else {
+                        innerDefault.classList.add("hide");
+                        inner.classList.remove("hide");
+
+                        inner.innerHTML = marked.parse(atobUTF8(_READMES[idReadme]));
+                    }
+
+                    document.querySelector(".readme").scrollIntoView();
+                    setUpCopyIcons();
+                    setUpAnchorElements();
+                });
+            }
+
+            function closeTab(idReadme) {
+                if (idReadme === "default") return;
+
+                const el = document.querySelector(
+                    `li.nav-item[data-id-readme="${idReadme}"]`
+                );
+                el.parentElement.removeChild(el);
+
+                selectTab("default");
+            }
+
+            function setUpNewTab({ content, repoName, repoURL }) {
+                const idReadme = repoURL;
+                _READMES[idReadme] = content;
+
+                const liEl = document.createElement("li");
+                liEl.classList.add("nav-item");
+                liEl.dataset.idReadme = repoURL;
+                liEl.textContent = repoName.split("_").join(" ");
+
+                const spanEl = document.createElement("span");
+                spanEl.classList.add("close");
+                spanEl.textContent = "X";
+
+                liEl.appendChild(spanEl);
+
+                document.querySelector("ul.nav-list").appendChild(liEl);
+                selectTab(idReadme);
+            }
+
+            function getRepoREADME(repoURL, repoName) {
+                if (_READMES[repoURL]) {
+                    const tabExists =
+                        document.querySelector(
+                            `li.nav-item[data-id-readme="${repoURL}"]`
+                        ) !== null;
+
+                    if (tabExists) selectTab(repoURL);
+                    else
+                        setUpNewTab({
+                            content: _READMES[repoURL],
+                            repoName,
+                            repoURL,
+                        });
+
+                    return;
+                }
+
+                fetch(
+                    `https://api.github.com/repos/Matheus-Ribeiro95/language-templates/readme`,
+                    {
+                        headers: {
+                            Accept: "application/vnd.github+json",
+                            "X-GitHub-Api-Version": "2022-11-28",
+                        },
+                    }
+                )
+                    .then((response) => {
+                        return response.json();
+                    })
+                    .then((response) => {
+                        const { download_url, content } = response;
+                        setUpNewTab({
+                            download_url,
+                            content,
+                            repoName,
+                            repoURL,
+                        });
+                    });
+            }
+
+            function setUpCopyIcons() {
+                document.querySelectorAll("i.copy").forEach((el) => {
+                    if (el.classList.contains("listener")) return;
+
+                    el.addEventListener("click", function () {
+                        const preEl = this.parentElement;
+
+                        let text = preEl.innerText.trim();
+
+                        if (text.indexOf("---")) {
+                            text = text.split("---")[0].trim();
+                        }
+
+                        navigator.clipboard.writeText(text);
+                    });
+
+                    el.classList.add("listener");
+                });
+            }
+
+            function setUpAnchorElements() {
+                document.querySelectorAll(".readme a").forEach((el) => {
+                    el.onclick = function (event) {
+                        const isDynamic = el.classList.contains("dynamic");
+
+                        if (!isDynamic) return;
+
+                        const elTrigger = event.target;
+
+                        if (elTrigger.nodeName === "SPAN") {
+                            event.preventDefault();
+
+                            el.classList.add("clicked-anchor");
+
+                            getRepoREADME(el.href, el.dataset.nameReadme);
+                        } else {
+                            el.classList.add("clicked-icon");
+                        }
+                    };
+                });
+            }
+
+            const renderer = {
+                link: function ({ text, href }) {
+                    const isLocal = href.indexOf("#") !== -1;
+                    const isDynamic = href.indexOf("*") === 0;
+
+                    const anchorEl = document.createElement("a");
+
+                    if (isDynamic) {
+                        anchorEl.classList.add("dynamic");
+
+                        const spanEl = document.createElement("span");
+                        spanEl.innerText = text;
+                        anchorEl.appendChild(spanEl);
+
+                        const data = href.substring(1).split("|");
+                        anchorEl.href = data[0];
+                        anchorEl.dataset.nameReadme = data[1];
+
+                        const iEl = document.createElement("i");
+                        iEl.classList.add(
+                            "fa-solid",
+                            "fa-arrow-up-right-from-square"
+                        );
+                        anchorEl.appendChild(iEl);
+                    } else {
+                        anchorEl.innerText = text;
+                        anchorEl.href = href;
+                    }
+
+                    if (!isLocal) {
+                        anchorEl.target = "_blank";
+                    }
+
+                    return anchorEl.outerHTML;
+                },
+                heading: function ({ tokens, depth }) {
+                    const text = this.parser.parseInline(tokens);
+
+                    const hash = text.toLowerCase().split(" ").join("-");
+
+                    return `<h${depth} id="${hash}">${text}</h${depth}>`;
+                },
+                code: function ({ codeBlockStyle, raw, text, type }) {
+                    return `<pre><code>${text}</code> <i class="copy fa-regular fa-copy"></i></a></pre>`;
+                },
+            };
+
+            marked.use({ renderer });
+
+            fetch("/README.md")
+                .then((response) => response.text())
+                .then((markdown) => {
+                    _READMES["default"] = btoaUTF8(markdown);
+
+                    document.getElementById("innerDefault").innerHTML = marked.parse(markdown);
+
+                    setUpCopyIcons();
+                    setUpAnchorElements();
+                });
+        </script>
+        <script></script>
+    </body>
+</html>

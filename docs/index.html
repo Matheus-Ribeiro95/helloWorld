@@ -87,6 +87,7 @@
 <script>
     const _FILES = {};
     const _READMES = {};
+    let _tabOpened = false;
     const _APILIMITED = {
         "GitHub": false,
         "GitLab": false,
@@ -109,7 +110,7 @@
 
             if (target.nodeName === "LI") {
                 const idReadme = target.dataset.idReadme;
-                selectTab(idReadme);
+                selectTab(idReadme, false);
             } else {
                 const idReadme = target.parentElement.dataset.idReadme;
                 closeTab(idReadme);
@@ -135,8 +136,12 @@
         return decoder.decode(utf8data);
     }
 
-    function selectTab(idReadme) {
+    function selectTab(idReadme, isNew = true) {
         setupFiles(idReadme);
+        if (!_tabOpened) {
+            _tabOpened = true;
+            document.querySelector(".files-section").style.minHeight = "212px";
+        }
 
         document.querySelectorAll("li.nav-item").forEach((el) => {
             if (el.dataset.idReadme != idReadme) {
@@ -161,7 +166,7 @@
             /*
                 REVIEW: Good idea?
              */
-            // document.querySelector(".readme").scrollIntoView();
+            if (isNew) document.querySelector(".readme").scrollIntoView();
             setUpCopyIcons();
             setUpAnchorElements();
         });
@@ -177,7 +182,7 @@
         );
         el.parentElement.removeChild(el);
 
-        selectTab("default");
+        selectTab("default", false);
     }
 
     function setUpNewTab({content, repoName, repoURL}) {

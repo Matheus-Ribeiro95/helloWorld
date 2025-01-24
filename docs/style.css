@@ -111,6 +111,11 @@ a[data-disabled] {
     color: #8b949e;
 }
 
+.files-section {
+    max-height: 212px;
+    overflow-y: scroll;
+}
+
 .file-item {
     display: flex;
     padding: 8px;

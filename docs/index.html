@@ -249,7 +249,7 @@
                 return response.json();
             })
             .then(data => {
-                const files = data.sort((a, b) => a.type > b.type || a.name > b.name);
+                const files = data.sort((a, b) => a.type > b.type || a.name.toLowerCase() > b.name.toLowerCase());
 
                 _FILES[repoURL] = files;
 
@@ -264,7 +264,7 @@
         fetch(`https://gitlab.com/api/v4/projects/${projectID.split("/")[4]}/repository/tree`)
             .then(response => response.json())
             .then(data => {
-                let files = data.sort((a, b) => b.type.localeCompare(a.type) || a.name > b.name).map(({ type, name }) => ({
+                let files = data.sort((a, b) => b.type.localeCompare(a.type) || a.name.toLowerCase() > b.name.toLowerCase()).map(({ type, name }) => ({
                     type: type === "tree" && "dir" || "file",
                     name,
                     html_url: `https://gitlab.com/Matheus-Ribeiro95/${encodeURI(repoName.toLowerCase().split("_").join("-"))}/-/blob/master/${name}?ref_type=heads`
